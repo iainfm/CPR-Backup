@@ -1,0 +1,14 @@
+# Targets for cprbackup.pl
+# Format is Volume,Source,Destination
+[-ravR,--delete]
+>>SMCA:,Client,SPEY::CLIENT
+[-rav,--delete]
+SMCA:,Confidential,SPEY::SMCA
+SMCA:,Financial Control,SPEY::SMCA
+SMCA:,Management,SPEY::SMCA
+SMCA:,Non-Client,SPEY::SMCA
+SMCA:,Tenders,SPEY::SMCA
+# Preserve IT files, and keep a backup of changed files
+[-ravR,--backup,--suffix=".1"]
+>IT:,IT Resources,SPEY::IT
+#End

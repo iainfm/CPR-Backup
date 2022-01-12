@@ -1,0 +1,70 @@
+Version 1.0.1
+
+Moved the code that waits for rsync to finish into a little subroutine. It's started to be used
+more often that I thought.
+
+Corrected a bug in the last part of the script (wasn't updating $rsync_running in the loop).
+
+Version 1.0.2
+
+Added email report options.
+
+Version 1.0.2a
+
+Fixed a bug. I was calling wait_for_rsync without () brackets. Oopsy.
+
+Version 1.0.2b
+
+Changed the error detection strings to avoid it thinking filenames containing these strings were
+error conditions.
+
+Version 1.0.3
+
+Some testing was done with older version of NetWare. 6.0 and 6.0SP2 failed, but SP3 and newer seem
+to be OK.
+
+Implemented log file rollover.
+Added log file parsing.
+
+Version 1.0.4
+
+Added options to repeat tasks (might be better for clustered servers where you don't know which
+volumes are going to be where...
+
+Version 1.0.5
+
+Skips volumes if they are not mounted (useful for clusters). Optionally warns and logs.
+Tided up code/indents etc (found Open Perl IDE - no more notepad! :-) )
+
+Moved the Stop-file test to its own subroutine
+
+Removed a superfluous sleep() command in the Minimal version
+
+Version 1.0.6
+
+Added the ability to specify user-defined rsync options in the targets file. Format is:
+[option1,option2,option3....]
+
+eg
+
+[-rav,--progress,--backup,--suffix=".1"]
+
+Version 1.0.7
+
+UCS method of determining whether an NLM is loaded has been replaced by checking the NRM XML files.
+Thanks to Larry Bernstone for suggesting this!
+
+*** For this reason, NSS must be present on the server and NRM functioning (check for the folder _ADMIN:Novell\NRM). ***
+*** If you don't have NSS volumes, continue using the 1.0.6 version ***
+
+CPRBackup-M has been removed from the distribution, as it was found that installing Perl 5.8 on older
+NetWare servers cured the crashing problems.
+
+Version 1.0.8
+
+Added the ability to direct cprbackup to automatically expand a given target. Put a '>' at the beginning of the line
+of the target to expand. To recurse further, simply add more >'s.
+
+Version 1.0.9
+
+Modified the auto-expansion routine to ignore current and parent (. and ..) folders that are returned by NW6.5 SP4.

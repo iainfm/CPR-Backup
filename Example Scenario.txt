@@ -1,0 +1,96 @@
+CPR-Backup - an example scenario
+================================
+
+I say 'example' - I actually mean *my* scenario ;-)
+
+My environment consists (mainly) of a 2-node Netware 6.5 cluster holding various volumes of user
+data. The volumes that hold a lot of files and data, I choose to break up into bite-sized chunks
+using the '>' directive in the targets file. Files are rsync'd to another 6.5 server in the same
+tree.
+
+The two cluster nodes both run the same CPR-Backup script, with the same target files.
+
+Because the volumes are clustered I don't know which node they will be hosted on, so I let it
+try them all and skip the ones that aren't there. (I've turned off warning reporting in
+the script).
+
+On each node, I have the following Crontab file in SYS:ETC\
+
+   #Minute      Hour    Day of Month    Month   Day of Wk       Command
+   #0-59        0-12    1-31            1-12    0-7 (Sun=0,7)   whatever.ncf
+
+   # The DATA1 pool backup (APPS and MISC volumes)
+   0,30         5-22    *               *       *               data1.ncf
+
+   # The DATA2 pool backup (SMCA and USER volumes)
+   15,45        5-22    *               *       *               data2.ncf
+
+   # The MGMT pool backup  (NDPS and IT volumes)
+   0            4       *               *       *               mgmt.ncf
+
+   # Backup the trustees weekly
+   0            1       *               *       6               savetrust.ncf
+
+
+So, as you can see from this every day on the hour and half-hour between 5am and 10pm the 'data1'
+NCF file executes. On the 1/4-past and 1/4-to the hour the 'data2' NCF file executes and at 4am
+every morning the 'mgmt' script executes. Trustee assignments are saved weekly at 1am on
+Saturday morning.
+
+I choose to call an NCF file from the cron job rather than the command itself because I may want
+to add or edit what happens at what time. It's just neater, that's all.
+
+My 4 NCF files are held in SYS:SYSTEM and look like this:
+
+
+   # DATA1 NCF script
+   # Called from crontab
+   perl --autodestroy SYS:CPRBACKUP.PL SYS:DATA1SRVR.TXT
+
+
+   # DATA2 NCF script
+   # Called from crontab
+   perl --autodestroy SYS:CPRBACKUP.PL SYS:DATA2SRVR.TXT
+
+
+   # MGMT NCF script
+   # Called from crontab
+   perl --autodestroy SYS:CPRBACKUP.PL SYS:MGMTSRVR.TXT
+
+   # SaveTrust NCF script
+   # Called from crontab - saves trustees to SYS:Trustees\<VolumeName>.txt
+   perl --autodestroy SYS:SAVETRUST.PL
+
+
+Having the scripts separate from the Crontab also has the advantage that they can be tested
+easily - just run them from the command line.
+
+Finally, my 3 target files are:
+
+   # Targets for cprbackup.pl - DATA1 pool volumes
+   # Format is Volume,Source,Destination
+   [-ravR,--delete]
+   >APPS:,/,SPEY::APPS
+   [-rav,--delete]
+   MISC:,/,SPEY::MISC
+   SYS:,Trustees,SPEY::TRUSTEES
+   #End
+
+   # Targets for cprbackup.pl - DATA2 pool volumes
+   # Format is Volume,Source,Destination
+   #
+   # Split the SMCA volume into bite-sized chunks...
+   [-ravR,--delete]
+   >>SMCA:,/,SPEY::CLIENT
+   # Do each user folder separately
+   >USER:,/,SPEY::USER
+   # Copy trustees
+   [-rav,--delete]
+   SYS:,Trustees,SPEY::TRUSTEES
+   #End
+
+   # Targets for cprbackup.pl - MGMT pool volumes
+   # Format is Volume,Source,Destination
+   IT:,/,SPEY::IT
+   NDPS:,/,SPEY::NDPS
+   #End
